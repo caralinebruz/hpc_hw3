@@ -55,46 +55,31 @@ void scan_omp(long* prefix_sum, const long* A, long n) {
   long* shared = (long*) malloc(size_of_shared_storage * sizeof(long));
   for (long i = 0; i < size_of_shared_storage; i++) shared[i] = 0;
 
+
   long acc = 0;
   #pragma omp parallel num_threads(NTHREADS)
   {
 
-    int offs = 0;
     long* chunked_array = (long*) malloc(chunk_size * sizeof(long));
     chunked_array[0] = 0;
 
-    
+    int offs = 0;
     #pragma omp for schedule(static,chunk_size) reduction(+:acc)
-      for (long i = 1; i < chunk_size; i++) {
+      for (long i = 1; i < n; i++) {
 
         printf("Thread %d is doing iteration %d.\n", omp_get_thread_num(), i);
-        printf("value of A, A[%lu - 1]: %lu \n", i, A[i-1]);
         chunked_array[i] = chunked_array[i-1] + A[i-1];
         acc = chunked_array[i];
+        offs = chunked_array[i];
+
+        // put the value back into prefix sum?
+        prefix_sum[i] = chunked_array[i];
       }
-      printf("Thread %d with offs %d.\n", omp_get_thread_num(), acc);
-
-    
-    // int offs = 0;
-    // #pragma omp for schedule(static,chunk_size) reduction(+:acc)
-    //   for (long i = 1; i < n; i++) {
-
-    //     printf("Thread %d is doing iteration %d.\n", omp_get_thread_num(), i);
-
-        
-
-    //     prefix_sum[i] = prefix_sum[i-1] + A[i-1];
-    //     acc =  prefix_sum[i];
-    //     offs = prefix_sum[i];
-    // }
-
-    // printf("Thread %d with offs %d.\n", omp_get_thread_num(), offs);
-
-    // long this_thread = omp_get_thread_num();
-    // shared[this_thread] = offs;
+      int this_thread = omp_get_thread_num();
+      printf("Thread %d with offs %d.\n", omp_get_thread_num(), offs);
+      shared[this_thread] = offs;
 
   }
-
 
   for (long j=0; j<size_of_shared_storage; j++) {
     printf("\t shared %lu: %lu \n", j, shared[j]);
