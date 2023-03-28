@@ -11,14 +11,7 @@ void scan_seq(long* prefix_sum, const long* A, long n) {
   prefix_sum[0] = 0;
 
   for (long i = 1; i < n; i++) {
-
-    // running sum, prev_value + next value in A
-
-    // printf("\t + A[%i-1]: %lu \n", i, A[i-1]);
-
     prefix_sum[i] = prefix_sum[i-1] + A[i-1];
-    // printf("\t = : %lu \n", prefix_sum[i]);
-    
   }
 }
 
@@ -50,11 +43,11 @@ void scan_omp(long* prefix_sum, const long* A, long n) {
     long* chunked_array = (long*) malloc(chunk_size * sizeof(long));
     chunked_array[0] = 0;
 
-    int offs = 0;
+    long offs = 0;
     #pragma omp for schedule(static,chunk_size) reduction(+:acc)
       for (long i = 1; i < n; i++) {
 
-        printf("Thread %d is doing iteration %d.\n", omp_get_thread_num(), i);
+        // printf("Thread %d is doing iteration %d.\n", omp_get_thread_num(), i);
         chunked_array[i] = chunked_array[i-1] + A[i-1];
         acc = chunked_array[i];
         offs = chunked_array[i];
@@ -63,14 +56,14 @@ void scan_omp(long* prefix_sum, const long* A, long n) {
         prefix_sum[i] = chunked_array[i];
       }
       int this_thread = omp_get_thread_num();
-      printf("Thread %d with offs %d.\n", omp_get_thread_num(), offs);
+    //   printf("Thread %d with offs %d.\n", omp_get_thread_num(), offs);
       shared[this_thread] = offs;
 
   }
 
-    for (long j=0; j<size_of_shared_storage; j++) {
-        printf("\t shared %lu: %lu \n", j, shared[j]);
-    }
+    // for (long j=0; j<size_of_shared_storage; j++) {
+    //     printf("\t shared %lu: %lu \n", j, shared[j]);
+    // }
 
     // calculate the offset to add to each chunk
     long* offset_to_add = (long*) malloc(size_of_shared_storage * sizeof(long));
@@ -98,7 +91,7 @@ void scan_omp(long* prefix_sum, const long* A, long n) {
         for (long i = 1; i < n; i++) {
 
             int this_thread = omp_get_thread_num();
-            printf("Thread %d.\n", this_thread);
+            // printf("Thread %d.\n", this_thread);
 
             prefix_sum[i] = prefix_sum[i] + offset_to_add[this_thread];
         }
@@ -117,17 +110,17 @@ int main() {
   long* B0 = (long*) malloc(N * sizeof(long));
   long* B1 = (long*) malloc(N * sizeof(long));
 
-  //for (long i = 0; i < N; i++) A[i] = rand();
-  for (long i = 0; i < N; i++) A[i] = 1+ (rand() % 100);
+  for (long i = 0; i < N; i++) A[i] = rand();
+  //for (long i = 0; i < N; i++) A[i] = 1+ (rand() % 10000);
 
   for (long i = 0; i < N; i++) B1[i] = 0;
 
   for (long i = 0; i < N; i++) B0[i] = 0;
 
-  printf("A:\n");
-  for (int x=0; x<N;x++) {
-    printf(" %lu , ", A[x]);
-  }
+//   printf("A:\n");
+//   for (int x=0; x<N;x++) {
+//     printf(" %lu , ", A[x]);
+//   }
   
   double tt = omp_get_wtime();
   scan_seq(B0, A, N);
