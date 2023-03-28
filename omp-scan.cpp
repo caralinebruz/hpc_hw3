@@ -38,19 +38,6 @@ void scan_omp(long* prefix_sum, const long* A, long n) {
   int size_of_shared_storage = NTHREADS;
   int chunk_size = n/NTHREADS;
 
-  // long offs = 0;
-  // #pragma omp parallel for schedule(static,chunk_size) num_threads(numthreads) reduction(+:offs)
-  //   for (long i = 1; i < n; i++) {
-
-  //     printf("Thread %d is doing iteration %d.\n", omp_get_thread_num(), i);
-
-  //     prefix_sum[i] = prefix_sum[i-1] + A[i-1];
-  //     offs =  prefix_sum[i];
-  //     printf("Thread %d with acc %d.\n", omp_get_thread_num(), acc);
-  // }
-  // // printf("Thread %d with acc %d.\n", omp_get_thread_num(), acc);
-
-
 
   long* shared = (long*) malloc(size_of_shared_storage * sizeof(long));
   for (long i = 0; i < size_of_shared_storage; i++) shared[i] = 0;
@@ -81,9 +68,42 @@ void scan_omp(long* prefix_sum, const long* A, long n) {
 
   }
 
-  for (long j=0; j<size_of_shared_storage; j++) {
-    printf("\t shared %lu: %lu \n", j, shared[j]);
-  }
+    for (long j=0; j<size_of_shared_storage; j++) {
+        printf("\t shared %lu: %lu \n", j, shared[j]);
+    }
+
+    // calculate the offset to add to each chunk
+    long* offset_to_add = (long*) malloc(size_of_shared_storage * sizeof(long));
+    for (long i = 0; i < size_of_shared_storage; i++) offset_to_add[i] = 0;
+    
+    for (int k=0;k<NTHREADS;k++) {
+        long sum=0;
+
+        for (int j=0;j<NTHREADS;j++) {
+            if (j==k) break;
+            sum = sum + shared[j];
+        }
+        offset_to_add[k] = sum;
+
+    }
+    // check result
+    for (long j=0; j<size_of_shared_storage; j++) {
+        printf("\t final offset to add %lu: %lu \n", j, offset_to_add[j]);
+    }
+
+    // next, add the offset in parallel
+    #pragma omp parallel num_threads(NTHREADS)
+    {
+        #pragma omp for schedule(static,chunk_size) 
+        for (long i = 1; i < n; i++) {
+
+            int this_thread = omp_get_thread_num();
+            printf("Thread %d.\n", this_thread);
+
+            prefix_sum[i] = prefix_sum[i] + offset_to_add[this_thread];
+        }
+
+    }
 
 
 
