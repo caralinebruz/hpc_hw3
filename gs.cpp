@@ -98,7 +98,7 @@ double compute_residual(double **u, int N, double invhsq)
 
 int main(int argc, char * argv[])
 {
-	int i, j, N, iter, max_iters;
+	int i, j, x, y, N, iter, max_iters;
 
 	// sscanf(argv[1], "%d", &N);
 	// sscanf(argv[2], "%d", &max_iters);
@@ -127,6 +127,9 @@ int main(int argc, char * argv[])
 		u[N+1][j] = 0.0;
 	}
 
+	//double* u    = (double *) calloc(sizeof(double), ((N+2)*(N+2)));
+	//double* unew = (double *) calloc(sizeof(double), ((N+2)*(N+2)));
+
 	double h = 1.0 / (N + 1);
 	double hsq = h*h;
 	double invhsq = 1./hsq;
@@ -135,7 +138,8 @@ int main(int argc, char * argv[])
 	printy(N, u);
 
 
-	// because of my residual calculation
+
+	// because of my residual calculation *** 
 	/* Jacobi step for all the inner points */
 	for (i = 1; i <= N; i++){
 		for (j=1; j<=N; j++) {
@@ -169,19 +173,51 @@ int main(int argc, char * argv[])
 	double omega = 2.0;
 
 
-	// do 1D jacobi until convergence
+	// do 1D gs until convergence
 	for (iter = 0; iter < max_iters && residual/initial_residual > tol; iter++) {
 
-		/* Jacobi step for all the inner points */
+		// gs step to update all red points (move in increments of 2)
 		for (i = 1; i <= N; i++){
-			for (j=1; j<=N; j++) {
 
-				unew[i][j] = 0.25 * (hsq + u[i-1][j] + u[i][j-1] + u[i+1][j] + u[i][j+1]);
+			if (i%2 == 0){
+				// use even j
+				for (j=2; j<=N;j+=2) {
+					//printf("i %d: j: %d\n", i,j);
+					unew[i][j] = 0.25 * (hsq + u[i-1][j] + u[i][j-1] + u[i+1][j] + u[i][j+1]);
+				}
 			}
-			// unew[i] =  u[i] + omega * 0.5 * (hsq + u[i - 1] + u[i + 1] - 2*u[i]);
+			else {
+				// use odd j
+				for (j=1; j<=N;j+=2) {
+					//printf("i %d: j: %d\n", i,j);
+					unew[i][j] = 0.25 * (hsq + u[i-1][j] + u[i][j-1] + u[i+1][j] + u[i][j+1]);
+				}
+			}
 		}
-
+		printf("Red points updated:\n");
 		printy(N,unew);
+
+		// // gs step to update all black points
+		for (i = 1; i <= N; i++){
+
+			if (i%2 == 0){
+				// use ODD j
+				for (j=1; j<=N;j+=2) {
+					//printf("i %d: j: %d\n", i,j);
+					unew[i][j] = 0.25 * (hsq + unew[i-1][j] + unew[i][j-1] + unew[i+1][j] + unew[i][j+1]);
+				}
+			}
+			else {
+				// use EVEN j
+				for (j=2; j<=N;j+=2) {
+					//printf("i %d: j: %d\n", i,j);
+					unew[i][j] = 0.25 * (hsq + unew[i-1][j] + unew[i][j-1] + unew[i+1][j] + unew[i][j+1]);
+				}
+			}
+		}
+		printf("Red and black points updated:\n");
+		printy(N,unew);
+
 
 		/* flip pointers; that's faster than memcpy  */
 		// memcpy(u,unew,(N+2)*sizeof(double));
