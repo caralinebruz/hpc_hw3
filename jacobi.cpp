@@ -100,8 +100,8 @@ int main(int argc, char * argv[])
 
 	// sscanf(argv[1], "%d", &N);
 	// sscanf(argv[2], "%d", &max_iters);
-	N = 4;
-	max_iters = 10;
+	N = 5;
+	max_iters = 1000;
 
 	Timer tt;
 	tt.tic();
