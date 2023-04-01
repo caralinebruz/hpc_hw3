@@ -164,7 +164,7 @@ int main(int argc, char * argv[])
 		}
 	}
 
-	printy(N,unew);
+	// printy(N,unew);
 
 	/* Clean up */
 	// free(u);
