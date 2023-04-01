@@ -106,8 +106,6 @@ int main(int argc, char * argv[])
 	double invhsq = 1./hsq;
 	double initial_residual, residual, tol = 1e-5;
 
-	printy(N, u);
-
 	/* initial residual */
 	initial_residual = compute_residual(u, N, invhsq);
 	printf("Initial Residual: %g\n",initial_residual);
@@ -132,8 +130,8 @@ int main(int argc, char * argv[])
 				}
 			}
 		}
-		printf("Red points updated:\n");
-		printy(N,unew);
+		// printf("Red points updated:\n");
+		// printy(N,unew);
 
 		// // gs step to update all black points
 		for (i = 1; i <= N; i++){
@@ -151,8 +149,8 @@ int main(int argc, char * argv[])
 				}
 			}
 		}
-		printf("Red and black points updated:\n");
-		printy(N,unew);
+		// printf("Red and black points updated:\n");
+		// printy(N,unew);
 
 
 		/* flip pointers; that's faster than memcpy  */
@@ -165,6 +163,8 @@ int main(int argc, char * argv[])
 			printf("Iter %d: Residual: %g\n", iter, residual);
 		}
 	}
+
+	printy(N,unew);
 
 	/* Clean up */
 	// free(u);

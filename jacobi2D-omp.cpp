@@ -105,8 +105,6 @@ int main(int argc, char * argv[])
 	double invhsq = 1./hsq;
 	double initial_residual, residual, tol = 1e-5;
 
-	printy(N, u);
-
 	/* initial residual */
 	initial_residual = compute_residual(u, N, invhsq, hsq);
 	printf("Initial Residual: %g\n",initial_residual);
@@ -124,7 +122,7 @@ int main(int argc, char * argv[])
 			// unew[i] =  u[i] + omega * 0.5 * (hsq + u[i - 1] + u[i + 1] - 2*u[i]); // 1d case
 		}
 
-		printy(N,unew);
+		// printy(N,unew);
 
 		/* flip pointers; that's faster than memcpy  */
 		// memcpy(u,unew,(N+2)*sizeof(double));
@@ -136,6 +134,8 @@ int main(int argc, char * argv[])
 			printf("Iter %d: Residual: %g\n", iter, residual);
 		}
 	}
+
+	printy(N,unew);
 
 	/* Clean up */
 	free_mems(N);
