@@ -13,12 +13,6 @@
 #include "utils.h"
 #endif
 
-// #ifdef __APPLE__ 
-// #include "utils.h"
-// #else
-// #include <omp.h>
-// #endif
-
 double** u;
 double** unew;
 
@@ -45,7 +39,6 @@ void printy(int N, double** q) {
 		}
 		printf("\n");
 	}
-	
 }
 
 /* compuate global residual, assuming ghost values are updated */
@@ -58,11 +51,8 @@ double compute_residual(double **u, int N, double invhsq, double hsq)
 		for (j=1; j <= N; j++) {
 
 			tmp = ( (-u[i-1][j] - u[i][j-1] + 4.0*u[i][j] -u[i+1][j] -u[i][j+1] ) * invhsq - 1); // working but valyes are off
-			// tmp = (-u[i-1][j] - u[i][j-1] + 4.0*u[i][j] -u[i+1][j] -u[i][j+1] - hsq);
-
 			res += tmp * tmp;
 		}
-
 	}
 	return sqrt(res);
 }
@@ -122,10 +112,6 @@ int main(int argc, char * argv[])
 	printf("Initial Residual: %g\n",initial_residual);
 	residual = initial_residual;
 
-	// double omega = 1.0; //2./3;
-	double omega = 2.0;
-
-
 	// // do 1D jacobi until convergence
 	for (iter = 0; iter < max_iters && residual/initial_residual > tol; iter++) {
 
@@ -133,15 +119,7 @@ int main(int argc, char * argv[])
 		for (i = 1; i <= N; i++){
 			for (j=1; j<=N; j++) {
 
-
-				unew[i][j] = u[i][j] + 0.25 * (hsq + u[i-1][j] + u[i][j-1] + u[i+1][j] + u[i][j+1] -4.0*u[i][j]); // working but off values
-				// unew[i][j] = 0.25 * (hsq + u[i-1][j] + u[i][j-1] + u[i+1][j] + u[i][j+1]); // tried and same exact values as above
-
-
-				// unew[i][j] = u[i][j] + omega * 0.25 * (hsq + u[i-1][j] + u[i][j-1] + u[i+1][j] + u[i][j+1] -4.0*u[i][j]); // omega=2 explodes
-
-				//unew[i][j] = 0.25 * (hsq + u[i-1][j] + u[i][j-1] + u[i+1][j] + u[i][j+1] -4.0*u[i][j]); explodes
-				// unew[i][j] = 0.25 * (hsq + u[i-1][j] + u[i][j-1] + u[i+1][j] + u[i][j+1]);
+				unew[i][j] = u[i][j] + 0.25 * (hsq + u[i-1][j] + u[i][j-1] + u[i+1][j] + u[i][j+1] -4.0*u[i][j]); // working but off values by 0.1
 			}
 			// unew[i] =  u[i] + omega * 0.5 * (hsq + u[i - 1] + u[i + 1] - 2*u[i]); // 1d case
 		}
